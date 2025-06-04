@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Estacao } from '../entities/estacao.entity';
 import { CriarEstacaoDto } from '../dtos/criaEstacao.dto';
 import { AtualizarEstacaoDto } from '../dtos/atualizaEstacao.dto';
+import { Bicicleta } from 'src/entities/bicicleta.entity';
 
 @Injectable()
 export class EstacoesService {
@@ -50,8 +51,46 @@ export class EstacoesService {
 
   async buscarDisponiveis(): Promise<Estacao[]> {
     return await this.estacaoRepository.find({
-      where: { ativo: true },
+      where: { ativa: true },
       relations: ['bicicletas'],
     });
+  }
+
+  async buscarBicicletasDaEstacao(id: number): Promise<Bicicleta[]> {
+    const estacao = await this.estacaoRepository.findOne({
+      where: { id },
+      relations: ['bicicletas'],
+    });
+  
+    if (!estacao) {
+      throw new NotFoundException(`Estação com ID ${id} não encontrada`);
+    }
+  
+    return estacao.bicicletas || [];
+  }
+
+  async buscarBicicletasDisponiveisDaEstacao(id: number): Promise<Bicicleta[]> {
+    const estacao = await this.estacaoRepository.findOne({
+      where: { id },
+      relations: ['bicicletas'],
+    });
+  
+    if (!estacao) {
+      throw new NotFoundException(`Estação com ID ${id} não encontrada`);
+    }
+  
+    return estacao.bicicletas?.filter(bike => bike.disponivel) || [];
+  }
+
+  async ativar(id: number): Promise<Estacao> {
+    const estacao = await this.buscarPorId(id); // Usa método existente
+    estacao.ativa = true;
+    return await this.estacaoRepository.save(estacao);
+  }
+  
+  async desativar(id: number): Promise<Estacao> {
+    const estacao = await this.buscarPorId(id); // Usa método existente  
+    estacao.ativa = false;
+    return await this.estacaoRepository.save(estacao);
   }
 }

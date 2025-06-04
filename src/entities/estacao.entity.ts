@@ -23,7 +23,7 @@ export class Estacao {
   vagas_disponiveis: number;
 
   @Column({ default: true })
-  ativo: boolean;
+  ativa: boolean;
 
   @CreateDateColumn()
   criado_em: Date;
